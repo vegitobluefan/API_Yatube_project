@@ -1,5 +1,4 @@
 from rest_framework.routers import SimpleRouter
-from rest_framework.authtoken import views
 
 from django.urls import include, path
 
