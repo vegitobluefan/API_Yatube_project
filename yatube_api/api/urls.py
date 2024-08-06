@@ -17,6 +17,5 @@ router.register(
 
 urlpatterns = [
     path(f'{API_VERSION}/', include(router.urls)),
-    path(f'{API_VERSION}/', include('djoser.urls')),
     path(f'{API_VERSION}/', include('djoser.urls.jwt')),
 ]

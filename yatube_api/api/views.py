@@ -1,14 +1,13 @@
-from rest_framework import viewsets, filters
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import viewsets, filters, permissions
 from rest_framework.pagination import LimitOffsetPagination
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 
-from posts.models import Group, Post
+from posts.models import Group, Post, Follow
+from .permissions import AuthorOrReadOnly
 from .serializers import (
     GroupSerializer, PostSerializer, CommentSerializer, FollowSerializer
 )
-from .permissions import AuthorOrReadOnly
 
 
 class BaseMixin:
@@ -16,7 +15,7 @@ class BaseMixin:
 
     error = PermissionDenied('Изменение и удаление чужого контента запрещено!')
     permission_classes = (
-        IsAuthenticatedOrReadOnly, AuthorOrReadOnly,)
+        permissions.IsAuthenticatedOrReadOnly, AuthorOrReadOnly,)
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
@@ -59,12 +58,12 @@ class FollowViewSet(viewsets.ModelViewSet):
     """Viewset для модели Follow."""
 
     serializer_class = FollowSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticated,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('following__username',)
 
     def get_queryset(self):
-        return self.request.user.follower.all()
+        return Follow.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -75,4 +74,4 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
