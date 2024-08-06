@@ -1,6 +1,7 @@
 from rest_framework.serializers import (
     ModelSerializer, SlugRelatedField, CurrentUserDefault
 )
+from rest_framework.exceptions import ValidationError
 
 from posts.models import Group, Post, Comment, Follow, User
 
@@ -46,6 +47,17 @@ class FollowSerializer(ModelSerializer):
         slug_field='username',
         queryset=User.objects.all()
     )
+
+    def validate(self, attrs):
+        if Follow.objects.filter(
+            user__username=self.context['request'].user,
+            following__username=attrs['following']
+        ).exists():
+            raise ValidationError('Вы уже подписаны на этого автора.')
+
+        if self.context['request'].user == attrs['following']:
+            raise ValidationError('Нельзя подписываться на самого себя.')
+        return super().validate(attrs)
 
     class Meta:
         model = Follow

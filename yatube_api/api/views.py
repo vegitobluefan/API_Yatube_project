@@ -1,8 +1,10 @@
-from rest_framework import viewsets, permissions, filters
+from rest_framework import viewsets, filters
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.pagination import LimitOffsetPagination
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 
-from posts.models import Group, Post, Follow
+from posts.models import Group, Post
 from .serializers import (
     GroupSerializer, PostSerializer, CommentSerializer, FollowSerializer
 )
@@ -14,8 +16,7 @@ class BaseMixin:
 
     error = PermissionDenied('Изменение и удаление чужого контента запрещено!')
     permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly, AuthorOrReadOnly
-    )
+        IsAuthenticatedOrReadOnly, AuthorOrReadOnly,)
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
@@ -28,18 +29,12 @@ class BaseMixin:
         return super().perform_destroy(serializer)
 
 
-class GroupViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet для модели Group, предназначенный только для чтения."""
-
-    queryset = Group.objects.all()
-    serializer_class = GroupSerializer
-
-
 class PostViewSet(BaseMixin, viewsets.ModelViewSet):
     """ViewSet для модели Post."""
 
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -64,6 +59,7 @@ class FollowViewSet(viewsets.ModelViewSet):
     """Viewset для модели Follow."""
 
     serializer_class = FollowSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('following__username',)
 
@@ -72,3 +68,11 @@ class FollowViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class GroupViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet для модели Group, предназначенный только для чтения."""
+
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
