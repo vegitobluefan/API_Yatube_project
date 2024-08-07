@@ -1,13 +1,13 @@
-from rest_framework import viewsets, filters, permissions
-from rest_framework.pagination import LimitOffsetPagination
-from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404
+from rest_framework import filters, permissions, viewsets
+from rest_framework.pagination import LimitOffsetPagination
 
-from posts.models import Group, Post, Follow
+from posts.models import Follow, Group, Post
+
 from .permissions import AuthorOrReadOnly
-from .serializers import (
-    GroupSerializer, PostSerializer, CommentSerializer, FollowSerializer
-)
+from .serializers import (CommentSerializer, FollowSerializer, GroupSerializer,
+                          PostSerializer)
 
 
 class BaseMixin:
@@ -31,7 +31,7 @@ class BaseMixin:
 class PostViewSet(BaseMixin, viewsets.ModelViewSet):
     """ViewSet для модели Post."""
 
-    queryset = Post.objects.all()
+    queryset = Post.objects.select_related('author')
     serializer_class = PostSerializer
     pagination_class = LimitOffsetPagination
 
@@ -45,13 +45,13 @@ class CommentViewSet(BaseMixin, viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
     def get_post(self):
-        return get_object_or_404(Post, pk=self.kwargs.get('post_id'))
+        return get_object_or_404(Post, pk=self.kwargs['post_id'])
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, post=self.get_post())
 
     def get_queryset(self):
-        return self.get_post().comments.all()
+        return self.get_post().comments.select_related('author')
 
 
 class FollowViewSet(viewsets.ModelViewSet):

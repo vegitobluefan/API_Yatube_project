@@ -1,25 +1,26 @@
-from rest_framework.serializers import (
-    ModelSerializer, SlugRelatedField, CurrentUserDefault
-)
 from rest_framework.exceptions import ValidationError
+from rest_framework.serializers import (CurrentUserDefault, ModelSerializer,
+                                        SlugRelatedField)
 
-from posts.models import Group, Post, Comment, Follow, User
+from posts.models import Comment, Follow, Group, Post, User
 
 
-class PostSerializer(ModelSerializer):
+class CustomSerializerMixin(ModelSerializer):
+    """Кастомный миксин для повторяющегося кода."""
+
+    author = SlugRelatedField(slug_field='username', read_only=True)
+
+
+class PostSerializer(CustomSerializerMixin):
     """Сериализатор для модели Post."""
-
-    author = SlugRelatedField(slug_field='username', read_only=True,)
 
     class Meta:
         model = Post
         fields = ('id', 'text', 'pub_date', 'author', 'image', 'group',)
 
 
-class CommentSerializer(ModelSerializer):
+class CommentSerializer(CustomSerializerMixin):
     """Сериализатор для модели Comment."""
-
-    author = SlugRelatedField(slug_field='username', read_only=True,)
 
     class Meta:
         model = Comment
