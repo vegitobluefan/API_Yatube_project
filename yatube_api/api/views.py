@@ -1,4 +1,3 @@
-from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, permissions, viewsets
 from rest_framework.pagination import LimitOffsetPagination
@@ -13,18 +12,12 @@ from .serializers import (CommentSerializer, FollowSerializer, GroupSerializer,
 class BaseMixin:
     """Кастомный миксин для повторяющегося кода."""
 
-    error = PermissionDenied('Изменение и удаление чужого контента запрещено!')
-    permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly, AuthorOrReadOnly,)
+    permission_classes = (AuthorOrReadOnly,)
 
     def perform_update(self, serializer):
-        if serializer.instance.author != self.request.user:
-            raise self.error
         super().perform_update(serializer)
 
     def perform_destroy(self, serializer):
-        if serializer.author != self.request.user:
-            raise self.error
         return super().perform_destroy(serializer)
 
 

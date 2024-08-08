@@ -5,13 +5,13 @@ from rest_framework.serializers import (CurrentUserDefault, ModelSerializer,
 from posts.models import Comment, Follow, Group, Post, User
 
 
-class CustomSerializerMixin(ModelSerializer):
+class AuthoredModelSerializerMixin(ModelSerializer):
     """Кастомный миксин для повторяющегося кода."""
 
     author = SlugRelatedField(slug_field='username', read_only=True)
 
 
-class PostSerializer(CustomSerializerMixin):
+class PostSerializer(AuthoredModelSerializerMixin):
     """Сериализатор для модели Post."""
 
     class Meta:
@@ -19,7 +19,7 @@ class PostSerializer(CustomSerializerMixin):
         fields = ('id', 'text', 'pub_date', 'author', 'image', 'group',)
 
 
-class CommentSerializer(CustomSerializerMixin):
+class CommentSerializer(AuthoredModelSerializerMixin):
     """Сериализатор для модели Comment."""
 
     class Meta:
