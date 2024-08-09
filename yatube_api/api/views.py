@@ -14,12 +14,6 @@ class BaseMixin:
 
     permission_classes = (AuthorOrReadOnly,)
 
-    def perform_update(self, serializer):
-        super().perform_update(serializer)
-
-    def perform_destroy(self, serializer):
-        return super().perform_destroy(serializer)
-
 
 class PostViewSet(BaseMixin, viewsets.ModelViewSet):
     """ViewSet для модели Post."""
