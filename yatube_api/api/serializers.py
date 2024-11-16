@@ -6,7 +6,7 @@ from posts.models import Comment, Follow, Group, Post, User
 
 
 class AuthoredModelSerializerMixin(ModelSerializer):
-    """Кастомный миксин для повторяющегося кода."""
+    """Миксин для повторяющегося кода."""
 
     author = SlugRelatedField(slug_field='username', read_only=True)
 
